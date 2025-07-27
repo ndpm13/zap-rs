@@ -71,4 +71,25 @@ impl AppImage {
 
         Ok(())
     }
+    pub async fn create_symlink(&self) -> Result<(), Box<dyn std::error::Error>> {
+        let home = std::env::var("HOME")?;
+        let local_bin = PathBuf::from(home).join(".local/bin");
+
+        fs::create_dir_all(&local_bin).await?;
+
+        let symlink_path = local_bin.join(&self.executable);
+
+        #[cfg(unix)]
+        {
+            use tokio::fs;
+
+            if symlink_path.exists() {
+                fs::remove_file(&symlink_path).await?;
+            }
+
+            std::os::unix::fs::symlink(&self.file_path, &symlink_path)?;
+        }
+
+        Ok(())
+    }
 }
