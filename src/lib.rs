@@ -1,7 +1,9 @@
 mod args;
+mod tui;
 mod types;
 
 pub use crate::args::*;
+pub use crate::tui::*;
 pub use crate::types::*;
 
 use std::path::PathBuf;
