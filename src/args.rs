@@ -13,6 +13,10 @@ pub enum Command {
     /// Installs an AppImage
     #[command(name = "install", alias = "i")]
     Install(InstallArgs),
+
+    /// Removes an AppImage
+    #[command(name = "remove", alias = "rm")]
+    Remove(RemoveArgs),
 }
 
 #[derive(Debug, Args)]
@@ -26,4 +30,9 @@ pub struct InstallArgs {
     /// Name of the executable
     #[arg(long)]
     pub executable: Option<String>,
+}
+
+#[derive(Debug, Args)]
+pub struct RemoveArgs {
+    pub appname: String,
 }

@@ -1,24 +1,24 @@
 use futures_util::StreamExt;
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 use std::path::PathBuf;
 use tokio::{fs, io::AsyncWriteExt};
 
 use crate::{appimages_dir, index_dir, make_progress_bar};
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct AppImage {
     pub file_path: PathBuf,
     pub executable: String,
     pub source: Source,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Source {
     pub identifier: String,
     pub meta: SourceMetadata,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct SourceMetadata {
     pub url: String,
 }
@@ -89,6 +89,17 @@ impl AppImage {
 
             std::os::unix::fs::symlink(&self.file_path, &symlink_path)?;
         }
+
+        Ok(())
+    }
+    pub async fn remove(&self) -> Result<(), Box<dyn std::error::Error>> {
+        let home = std::env::var("HOME")?;
+        let symlink_path = PathBuf::from(home).join(".local/bin").join(&self.executable);
+        let index_path = index_dir().join(format!("{}.json", &self.executable));
+
+        fs::remove_file(&self.file_path).await?;
+        fs::remove_file(symlink_path).await?;
+        fs::remove_file(index_path).await?;
 
         Ok(())
     }
