@@ -42,6 +42,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             appimage.remove().await?;
         }
+        Command::List => {
+            let mut appimages = fs::read_dir(index_dir()).await?;
+
+            while let Some(appimage) = appimages.next_entry().await? {
+                if let Some(name) = appimage.file_name().to_str() {
+                    println!("- {}", name.strip_suffix(".json").unwrap());
+                }
+            }
+        }
     };
 
     Ok(())

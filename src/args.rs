@@ -17,6 +17,10 @@ pub enum Command {
     /// Removes an AppImage
     #[command(name = "remove", alias = "rm")]
     Remove(RemoveArgs),
+
+    /// List the installed AppImages
+    #[command(name = "list", alias = "ls")]
+    List,
 }
 
 #[derive(Debug, Args)]
