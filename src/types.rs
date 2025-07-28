@@ -25,6 +25,8 @@ pub struct SourceMetadata {
 
 impl AppImage {
     pub async fn save_to_index(&self, appname: &str) -> Result<(), Box<dyn std::error::Error>> {
+        fs::create_dir_all(&index_dir()).await?;
+
         let index_file = &index_dir().join(format!("{appname}.json"));
 
         let json = serde_json::to_string_pretty(self)?;
