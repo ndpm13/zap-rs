@@ -8,15 +8,15 @@ pub use crate::types::*;
 
 use std::path::PathBuf;
 
-pub fn ndpm_ai_home() -> PathBuf {
+pub fn zap_rs_home() -> PathBuf {
     let home = std::env::var("HOME").expect("HOME not set");
-    PathBuf::from(home).join(".local/share/ndpm-appimage")
+    PathBuf::from(home).join(".local/share/zap-rs")
 }
 
 pub fn index_dir() -> PathBuf {
-    ndpm_ai_home().join("index")
+    zap_rs_home().join("index")
 }
 
 pub fn appimages_dir() -> PathBuf {
-    ndpm_ai_home().join("appimages")
+    zap_rs_home().join("appimages")
 }
