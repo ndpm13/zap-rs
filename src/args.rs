@@ -30,7 +30,7 @@ pub struct InstallArgs {
     /// Provide a repository slug, or a direct URL to an appimage.
     #[arg(long)]
     pub from: String,
-    
+
     /// Name of the executable
     #[arg(long)]
     pub executable: Option<String>,
