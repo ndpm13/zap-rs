@@ -1,22 +1,17 @@
+mod appimage;
 mod args;
+mod downloader;
+mod index;
+mod manager;
+mod paths;
+mod symlink;
 mod tui;
-mod types;
 
+pub use crate::appimage::*;
 pub use crate::args::*;
+pub use crate::downloader::*;
+pub use crate::index::*;
+pub use crate::manager::*;
+pub use crate::paths::*;
+pub use crate::symlink::*;
 pub use crate::tui::*;
-pub use crate::types::*;
-
-use std::path::PathBuf;
-
-pub fn zap_rs_home() -> PathBuf {
-    let home = std::env::var("HOME").expect("HOME not set");
-    PathBuf::from(home).join(".local/share/zap-rs")
-}
-
-pub fn index_dir() -> PathBuf {
-    zap_rs_home().join("index")
-}
-
-pub fn appimages_dir() -> PathBuf {
-    zap_rs_home().join("appimages")
-}
