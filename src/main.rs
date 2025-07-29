@@ -1,7 +1,9 @@
 use clap::Parser;
 use tokio::fs;
 
-use zap_rs::{AppImage, Cli, Command, Source, SourceMetadata, appimages_dir, index_dir};
+use zap_rs::{
+    AppImage, Cli, Command, PackageManager, Source, SourceMetadata, appimages_dir, index_dir,
+};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -24,23 +26,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 },
             };
 
-            if index_dir()
-                .join(format!("{}.json", &options.executable))
-                .exists()
-            {
-                eprintln!("{} is already installed.", &options.executable);
-            } else {
-                options.download_from_url().await?;
-                options.save_to_index(&args.appname).await?;
-                options.create_symlink().await?;
-            }
+            PackageManager::install(&options, &args.appname).await?;
         }
         Command::Remove(args) => {
-            let index_file_path = index_dir().join(format!("{}.json", args.appname));
-            let index_file_content = fs::read_to_string(&index_file_path).await?;
-            let appimage: AppImage = serde_json::from_str(&index_file_content)?;
-
-            appimage.remove().await?;
+            PackageManager::remove(&args.appname).await?;
         }
         Command::List => {
             let mut appimages = fs::read_dir(index_dir()).await?;
