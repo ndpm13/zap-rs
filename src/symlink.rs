@@ -10,6 +10,14 @@ impl SymlinkManager {
     pub fn new() -> Self {
         Self {}
     }
+    pub async fn remove(&self, executable: &str) -> Result<(), Box<dyn std::error::Error>> {
+        let home = std::env::var("HOME")?;
+        let symlink_path = PathBuf::from(home).join(".local/bin").join(executable);
+
+        fs::remove_file(symlink_path).await?;
+
+        Ok(())
+    }
     pub async fn create(&self, appimage: &AppImage) -> Result<(), Box<dyn std::error::Error>> {
         let home = std::env::var("HOME")?;
         let local_bin = PathBuf::from(home).join(".local/bin");
