@@ -8,6 +8,7 @@ use zap_rs::{AppImage, Cli, Command, PackageManager, Source, SourceMetadata, ind
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Cli::parse();
+    let pm = PackageManager::new();
 
     match args.command {
         Command::Install(args) => {
@@ -20,11 +21,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 },
             };
 
-            let pm = PackageManager::new();
             pm.install(&mut options, &args.appname).await?;
         }
         Command::Remove(args) => {
-            let pm = PackageManager::new();
             pm.remove(&args.appname).await?;
         }
         Command::List => {
