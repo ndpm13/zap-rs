@@ -11,6 +11,15 @@ impl Downloader {
     pub fn new() -> Self {
         Self {}
     }
+    pub fn prepare_path(&self, url: &str, executable: &str) -> PathBuf {
+        // Try to extract filename from URL or use default
+        let filename = match url.split('/').next_back() {
+            Some(name) => name.to_string(),
+            None => format!("{executable}.AppImage"),
+        };
+
+        appimages_dir().join(filename)
+    }
     pub async fn download_with_progress(
         &self,
         url: &str,
