@@ -1,10 +1,8 @@
-use std::path::PathBuf;
-
 use tokio::fs;
 
-use crate::{AppImage, Downloader, Index, SymlinkManager, appimages_dir, index_dir};
+use crate::{AppImage, Downloader, Index, SymlinkManager};
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct PackageManager {
     pub downloader: Downloader,
     pub index: Index,
@@ -12,49 +10,39 @@ pub struct PackageManager {
 }
 
 impl PackageManager {
-    pub async fn install(
-        appimage: &AppImage,
-        appname: &str,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        if index_dir()
-            .join(format!("{}.json", &appimage.executable))
-            .exists()
-        {
-            Err(format!("{} is already installed.", &appimage.executable).into())
-        } else {
-            // Try to extract filename from URL or use default
-            let url = &appimage.source.meta.url;
-            let filename = match url.split('/').next_back() {
-                Some(name) => name.to_string(),
-                None => format!("{}.AppImage", appimage.executable),
-            };
-            let path = &appimages_dir().join(filename);
-
-            let downloader = crate::Downloader::new();
-            downloader.download_with_progress(url, path).await?;
-
-            let index = crate::Index::new();
-            index.add(appimage, appname).await?;
-
-            let sm = crate::SymlinkManager::new();
-            sm.create(appimage).await?;
-            Ok(())
+    pub fn new() -> Self {
+        Self {
+            downloader: Downloader::new(),
+            index: Index::new(),
+            symlink_manager: SymlinkManager::new(),
         }
     }
-    pub async fn remove(appname: &str) -> Result<(), Box<dyn std::error::Error>> {
-        let index_file_path = index_dir().join(format!("{appname}.json"));
-        let index_file_content = fs::read_to_string(&index_file_path).await?;
-        let appimage: AppImage = serde_json::from_str(&index_file_content)?;
+    pub async fn install(
+        &self,
+        appimage: &mut AppImage,
+        appname: &str,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        if self.index.exists(&appimage.executable) {
+            return Err(format!("{} is already installed.", &appimage.executable).into());
+        }
 
-        let home = std::env::var("HOME")?;
-        let symlink_path = PathBuf::from(home)
-            .join(".local/bin")
-            .join(&appimage.executable);
-        let index_path = index_dir().join(format!("{}.json", &appimage.executable));
+        appimage.file_path = self
+            .downloader
+            .prepare_path(&appimage.source.meta.url, &appimage.executable);
+        self.downloader
+            .download_with_progress(&appimage.source.meta.url, &appimage.file_path)
+            .await?;
+
+        self.index.add(appimage, appname).await?;
+        self.symlink_manager.create(appimage).await?;
+        Ok(())
+    }
+    pub async fn remove(&self, appname: &str) -> Result<(), Box<dyn std::error::Error>> {
+        let appimage = self.index.get(appname).await?;
 
         fs::remove_file(&appimage.file_path).await?;
-        fs::remove_file(symlink_path).await?;
-        fs::remove_file(index_path).await?;
+        self.symlink_manager.remove(&appimage.executable).await?;
+        self.index.remove(appname).await?;
 
         Ok(())
     }
