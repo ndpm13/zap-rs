@@ -50,8 +50,8 @@ impl PackageManager {
         let mut appimages = fs::read_dir(index_dir()).await?;
 
         while let Some(appimage) = appimages.next_entry().await? {
-            if let Some(name) = appimage.file_name().to_str() {
-                println!("- {}", name.strip_suffix(".json").unwrap());
+            if let Some(stem) = appimage.path().file_stem().and_then(|s| s.to_str()) {
+                println!("- {stem}");
             }
         }
 
