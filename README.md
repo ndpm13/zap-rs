@@ -12,7 +12,7 @@ cargo install --git https://github.com/ndpm13/zap-rs
 
 ```bash
 # Install from URL
-zap-rs install --from https://f.sed.lol/wow.AppImage wow 
+zap-rs install --from https://f.sed.lol/wow.AppImage wow
 
 # Remove
 zap-rs rm neovim
