@@ -1,6 +1,6 @@
 use tokio::fs;
 
-use crate::{AppImage, Downloader, Index, SymlinkManager};
+use crate::{AppImage, Downloader, Index, SymlinkManager, index_dir};
 
 #[derive(Debug, Default)]
 pub struct PackageManager {
@@ -43,6 +43,17 @@ impl PackageManager {
         fs::remove_file(&appimage.file_path).await?;
         self.symlink_manager.remove(&appimage.executable).await?;
         self.index.remove(appname).await?;
+
+        Ok(())
+    }
+    pub async fn list(&self) -> Result<(), Box<dyn std::error::Error>> {
+        let mut appimages = fs::read_dir(index_dir()).await?;
+
+        while let Some(appimage) = appimages.next_entry().await? {
+            if let Some(name) = appimage.file_name().to_str() {
+                println!("- {}", name.strip_suffix(".json").unwrap());
+            }
+        }
 
         Ok(())
     }

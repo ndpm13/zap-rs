@@ -1,9 +1,8 @@
 use std::path::PathBuf;
 
 use clap::Parser;
-use tokio::fs;
 
-use zap_rs::{AppImage, Cli, Command, PackageManager, Source, SourceMetadata, index_dir};
+use zap_rs::{AppImage, Cli, Command, PackageManager, Source, SourceMetadata};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -27,13 +26,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             pm.remove(&args.appname).await?;
         }
         Command::List => {
-            let mut appimages = fs::read_dir(index_dir()).await?;
-
-            while let Some(appimage) = appimages.next_entry().await? {
-                if let Some(name) = appimage.file_name().to_str() {
-                    println!("- {}", name.strip_suffix(".json").unwrap());
-                }
-            }
+            pm.list().await?;
         }
     };
 
