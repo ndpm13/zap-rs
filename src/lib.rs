@@ -6,6 +6,7 @@ mod manager;
 mod paths;
 mod symlink;
 mod tui;
+mod error;
 
 pub use crate::appimage::*;
 pub use crate::args::*;
@@ -15,3 +16,4 @@ pub use crate::manager::*;
 pub use crate::paths::*;
 pub use crate::symlink::*;
 pub use crate::tui::*;
+pub use crate::error::*;
