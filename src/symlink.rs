@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 use tokio::fs;
 
-use crate::AppImage;
+use crate::{AppImage, Result};
 
 #[derive(Debug, Default)]
 pub struct SymlinkManager {}
@@ -10,7 +10,7 @@ impl SymlinkManager {
     pub fn new() -> Self {
         Self {}
     }
-    pub async fn remove(&self, executable: &str) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn remove(&self, executable: &str) -> Result<()> {
         let home = std::env::var("HOME")?;
         let symlink_path = PathBuf::from(home).join(".local/bin").join(executable);
 
@@ -18,7 +18,7 @@ impl SymlinkManager {
 
         Ok(())
     }
-    pub async fn create(&self, appimage: &AppImage) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn create(&self, appimage: &AppImage) -> Result<()> {
         let home = std::env::var("HOME")?;
         let local_bin = PathBuf::from(home).join(".local/bin");
 

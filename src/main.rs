@@ -2,10 +2,10 @@ use std::path::PathBuf;
 
 use clap::Parser;
 
-use zap_rs::{AppImage, Cli, Command, PackageManager, Source, SourceMetadata};
+use zap_rs::{AppImage, Cli, Command, PackageManager, Result, Source, SourceMetadata};
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<()> {
     let args = Cli::parse();
     let pm = PackageManager::new();
 

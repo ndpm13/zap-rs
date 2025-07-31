@@ -2,7 +2,7 @@ use futures_util::StreamExt;
 use std::path::PathBuf;
 use tokio::{fs, io::AsyncWriteExt};
 
-use crate::{appimages_dir, make_progress_bar};
+use crate::{Result, appimages_dir, make_progress_bar};
 
 #[derive(Debug, Default)]
 pub struct Downloader {}
@@ -20,11 +20,7 @@ impl Downloader {
 
         appimages_dir().join(filename)
     }
-    pub async fn download_with_progress(
-        &self,
-        url: &str,
-        path: &PathBuf,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn download_with_progress(&self, url: &str, path: &PathBuf) -> Result<()> {
         fs::create_dir_all(&appimages_dir()).await?;
 
         let resp = reqwest::get(&url.to_string()).await?;

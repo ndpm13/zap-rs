@@ -1,6 +1,6 @@
 use tokio::fs;
 
-use crate::{AppImage, Downloader, Index, SymlinkManager, index_dir};
+use crate::{AppImage, Downloader, Index, Result, SymlinkManager, index_dir};
 
 #[derive(Debug, Default)]
 pub struct PackageManager {
@@ -17,13 +17,10 @@ impl PackageManager {
             symlink_manager: SymlinkManager::new(),
         }
     }
-    pub async fn install(
-        &self,
-        appimage: &mut AppImage,
-        appname: &str,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn install(&self, appimage: &mut AppImage, appname: &str) -> Result<()> {
         if self.index.exists(&appimage.executable) {
-            return Err(format!("{} is already installed.", &appimage.executable).into());
+            println!("{} is already installed.", appimage.executable);
+            return Ok(());
         }
 
         appimage.file_path = self
@@ -37,7 +34,7 @@ impl PackageManager {
         self.symlink_manager.create(appimage).await?;
         Ok(())
     }
-    pub async fn remove(&self, appname: &str) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn remove(&self, appname: &str) -> Result<()> {
         let appimage = self.index.get(appname).await?;
 
         fs::remove_file(&appimage.file_path).await?;
@@ -46,7 +43,7 @@ impl PackageManager {
 
         Ok(())
     }
-    pub async fn list(&self) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn list(&self) -> Result<()> {
         let mut appimages = fs::read_dir(index_dir()).await?;
 
         while let Some(appimage) = appimages.next_entry().await? {
