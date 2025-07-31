@@ -18,14 +18,14 @@ impl PackageManager {
         }
     }
     pub async fn install(&self, appimage: &mut AppImage, appname: &str) -> Result<()> {
-        if self.index.exists(&appimage.executable) {
+        if self.index.exists(&appimage.executable)? {
             println!("{} is already installed.", appimage.executable);
             return Ok(());
         }
 
         appimage.file_path = self
             .downloader
-            .prepare_path(&appimage.source.meta.url, &appimage.executable);
+            .prepare_path(&appimage.source.meta.url, &appimage.executable)?;
         self.downloader
             .download_with_progress(&appimage.source.meta.url, &appimage.file_path)
             .await?;
@@ -44,7 +44,7 @@ impl PackageManager {
         Ok(())
     }
     pub async fn list(&self) -> Result<()> {
-        let mut appimages = fs::read_dir(index_dir()).await?;
+        let mut appimages = fs::read_dir(index_dir()?).await?;
 
         while let Some(appimage) = appimages.next_entry().await? {
             if let Some(stem) = appimage.path().file_stem().and_then(|s| s.to_str()) {
