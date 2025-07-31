@@ -4,8 +4,7 @@ use clap::Parser;
 
 use zap_rs::{AppImage, Cli, Command, PackageManager, Result, Source, SourceMetadata};
 
-#[tokio::main]
-async fn main() -> Result<()> {
+async fn run() -> Result<()> {
     let args = Cli::parse();
     let pm = PackageManager::new();
 
@@ -31,4 +30,11 @@ async fn main() -> Result<()> {
     };
 
     Ok(())
+}
+
+#[tokio::main]
+async fn main() {
+    if let Err(e) = run().await {
+        eprintln!("Error: {e}");
+    }
 }
