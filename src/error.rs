@@ -18,6 +18,9 @@ pub enum Error {
 
     #[from]
     EnvVar(std::env::VarError),
+
+    #[from]
+    IndicatifTemplate(indicatif::style::TemplateError),
 }
 
 impl core::fmt::Display for Error {
@@ -32,6 +35,7 @@ impl core::fmt::Display for Error {
             Error::Http(e) => write!(fmt, "HTTP error: {e}"),
             Error::EnvVar(e) => write!(fmt, "Environment variable error: {e}"),
             Error::InvalidPath => write!(fmt, "Invalid path provided"),
+            Error::IndicatifTemplate(e) => write!(fmt, "Progress bar template error: {e}"),
         }
     }
 }

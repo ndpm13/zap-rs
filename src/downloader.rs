@@ -26,7 +26,7 @@ impl Downloader {
         let resp = reqwest::get(&url.to_string()).await?;
         let total_size = resp.content_length().unwrap_or(0);
 
-        let bar = make_progress_bar(total_size);
+        let bar = make_progress_bar(total_size)?;
         let mut out = tokio::fs::File::create(&path).await?;
 
         // Stream download with progress updates
