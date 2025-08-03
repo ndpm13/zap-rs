@@ -6,6 +6,10 @@ pub type Result<T> = core::result::Result<T, Error>;
 pub enum Error {
     InvalidPath,
     NotFound(String),
+    Download {
+        url: String,
+        source: reqwest::Error,
+    },
 
     #[from]
     Io(std::io::Error),
@@ -36,6 +40,22 @@ impl core::fmt::Display for Error {
             Error::EnvVar(e) => write!(fmt, "Environment variable error: {e}"),
             Error::InvalidPath => write!(fmt, "Invalid path provided"),
             Error::IndicatifTemplate(e) => write!(fmt, "Progress bar template error: {e}"),
+            Error::Download { url, source } => {
+                if source.is_timeout() {
+                    write!(fmt, "Download timed out from: {url}")
+                } else if source.is_connect() {
+                    write!(fmt, "Failed to connect to: {url}")
+                } else if let Some(status) = source.status() {
+                    match status.as_u16() {
+                        404 => write!(fmt, "AppImage not found at: {url}"),
+                        403 => write!(fmt, "Access denied at: {url}"),
+                        500..=599 => write!(fmt, "Server error when downloading from: {url}"),
+                        _ => write!(fmt, "HTTP {status} error downloading from: {url}"),
+                    }
+                } else {
+                    write!(fmt, "Failed to download from {url}: {source}")
+                }
+            }
         }
     }
 }

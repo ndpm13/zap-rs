@@ -2,7 +2,7 @@ use futures_util::StreamExt;
 use std::path::PathBuf;
 use tokio::{fs, io::AsyncWriteExt};
 
-use crate::{Result, appimages_dir, make_progress_bar};
+use crate::{Error, Result, appimages_dir, make_progress_bar};
 
 #[derive(Debug, Default)]
 pub struct Downloader {}
@@ -23,7 +23,12 @@ impl Downloader {
     pub async fn download_with_progress(&self, url: &str, path: &PathBuf) -> Result<()> {
         fs::create_dir_all(&appimages_dir()?).await?;
 
-        let resp = reqwest::get(&url.to_string()).await?;
+        let resp = reqwest::get(&url.to_string())
+            .await
+            .map_err(|source| Error::Download {
+                url: url.to_string(),
+                source,
+            })?;
         let total_size = resp.content_length().unwrap_or(0);
 
         let bar = make_progress_bar(total_size)?;
@@ -32,7 +37,10 @@ impl Downloader {
         // Stream download with progress updates
         let mut stream = resp.bytes_stream();
         while let Some(chunk) = stream.next().await {
-            let chunk = chunk?;
+            let chunk = chunk.map_err(|source| Error::Download {
+                url: url.to_string(),
+                source,
+            })?;
             let len = chunk.len() as u64;
             out.write_all(&chunk).await?;
             bar.inc(len);
