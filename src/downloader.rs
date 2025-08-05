@@ -14,7 +14,13 @@ impl Downloader {
     pub fn prepare_path(&self, url: &str, executable: &str) -> Result<PathBuf> {
         // Try to extract filename from URL or use default
         let filename = match url.split('/').next_back() {
-            Some(name) => name.to_string(),
+            Some(name) => {
+                if name.to_lowercase().ends_with(".appimage") {
+                    name.to_string()
+                } else {
+                    format!("{executable}.AppImage")
+                }
+            }
             None => format!("{executable}.AppImage"),
         };
 
