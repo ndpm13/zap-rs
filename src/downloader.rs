@@ -60,6 +60,8 @@ impl Downloader {
     pub async fn download_with_progress(&self, url: &str, path: &PathBuf) -> Result<()> {
         fs::create_dir_all(&appimages_dir()?).await?;
 
+        let temp_path = PathBuf::from(format!("{}.part", path.display()));
+
         let resp = reqwest::get(&url.to_string())
             .await
             .map_err(|source| Error::Download {
@@ -72,21 +74,29 @@ impl Downloader {
         let total_size = resp.content_length().unwrap_or(0);
 
         let bar = make_progress_bar(total_size)?;
-        let mut out = tokio::fs::File::create(&path).await?;
+        let mut out = tokio::fs::File::create(&temp_path).await?;
 
         // Stream download with progress updates
         let mut stream = resp.bytes_stream();
         while let Some(chunk) = stream.next().await {
-            let chunk = chunk.map_err(|source| Error::Download {
-                url: url.to_string(),
-                source,
-            })?;
+            let chunk = match chunk {
+                Ok(chunk) => chunk,
+                Err(source) => {
+                    fs::remove_file(temp_path).await?;
+                    return Err(Error::Download {
+                        url: url.to_string(),
+                        source,
+                    });
+                }
+            };
             let len = chunk.len() as u64;
             out.write_all(&chunk).await?;
             bar.inc(len);
         }
 
         bar.finish_with_message("Download complete!");
+
+        fs::rename(temp_path, path).await?;
 
         // Make executable
         #[cfg(unix)]
