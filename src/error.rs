@@ -10,6 +10,7 @@ pub enum Error {
         url: String,
         source: reqwest::Error,
     },
+    InvalidAppImage,
 
     #[from]
     Io(std::io::Error),
@@ -55,6 +56,9 @@ impl core::fmt::Display for Error {
                 } else {
                     write!(fmt, "Failed to download from {url}: {source}")
                 }
+            }
+            Error::InvalidAppImage => {
+                write!(fmt, "Invalid AppImage")
             }
         }
     }
