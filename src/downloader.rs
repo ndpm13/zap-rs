@@ -20,6 +20,43 @@ impl Downloader {
 
         Ok(appimages_dir()?.join(filename))
     }
+    pub fn validate_response(&self, resp: &reqwest::Response) -> Result<()> {
+        if !resp.status().is_success() {
+            return Err(Error::Download {
+                url: resp.url().to_string(),
+                source: resp.error_for_status_ref().unwrap_err(),
+            });
+        }
+
+        if let Some(len) = resp.content_length() {
+            if len < 1024 {
+                return Err(Error::InvalidAppImage);
+            }
+        }
+
+        let content_type = resp
+            .headers()
+            .get("content-type")
+            .and_then(|ct| ct.to_str().ok())
+            .unwrap_or("")
+            .to_lowercase();
+
+        let is_binary = matches!(
+            content_type.as_str(),
+            "application/octet-stream"
+                | "application/vnd.appimage"
+                | "application/x-executable"
+                | "application/x-elf"
+                | "binary/octet-stream"
+                | "application/binary",
+        );
+
+        if !is_binary {
+            return Err(Error::InvalidAppImage);
+        }
+
+        Ok(())
+    }
     pub async fn download_with_progress(&self, url: &str, path: &PathBuf) -> Result<()> {
         fs::create_dir_all(&appimages_dir()?).await?;
 
@@ -29,6 +66,9 @@ impl Downloader {
                 url: url.to_string(),
                 source,
             })?;
+
+        self.validate_response(&resp)?;
+
         let total_size = resp.content_length().unwrap_or(0);
 
         let bar = make_progress_bar(total_size)?;
