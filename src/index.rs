@@ -1,6 +1,6 @@
 use tokio::fs;
 
-use crate::{AppImage, Result, index_dir};
+use crate::{AppImage, Error, Result, index_dir};
 
 #[derive(Debug, Default)]
 pub struct Index {}
@@ -11,7 +11,13 @@ impl Index {
     }
     pub async fn get(&self, appname: &str) -> Result<AppImage> {
         let index_file_path = index_dir()?.join(format!("{appname}.json"));
-        let index_file_content = fs::read_to_string(&index_file_path).await?;
+        let index_file_content = fs::read_to_string(&index_file_path).await.map_err(|e| {
+            if e.kind() == std::io::ErrorKind::NotFound {
+                Error::NotFound(appname.to_string())
+            } else {
+                Error::from(e)
+            }
+        })?;
         let appimage: AppImage = serde_json::from_str(&index_file_content)?;
 
         Ok(appimage)

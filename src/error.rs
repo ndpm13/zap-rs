@@ -31,10 +31,7 @@ pub enum Error {
 impl core::fmt::Display for Error {
     fn fmt(&self, fmt: &mut core::fmt::Formatter) -> core::result::Result<(), std::fmt::Error> {
         match self {
-            Error::Io(e) => match e.kind() {
-                std::io::ErrorKind::NotFound => write!(fmt, "File or directory not found"),
-                _ => write!(fmt, "IO error: {e}"),
-            },
+            Error::Io(e) => write!(fmt, "{e}"),
             Error::NotFound(name) => write!(fmt, "Application '{name}' not found"),
             Error::Json(e) => write!(fmt, "JSON error: {e}"),
             Error::Http(e) => write!(fmt, "HTTP error: {e}"),
