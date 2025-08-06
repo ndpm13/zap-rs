@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 clap = { version = "4.5.41", features = ["derive"] }
+colored = "3.0.0"
 derive_more = { version = "2.0.1", features = ["from"] }
 futures-util = "0.3.31"
 indicatif = { version = "0.18.0", features = ["improved_unicode"] }
