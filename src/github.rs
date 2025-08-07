@@ -35,6 +35,8 @@ pub async fn get_github_release_url(appimage: &AppImage) -> Result<String> {
     let tag_selection = FuzzySelect::new()
         .with_prompt("Choose a release")
         .items(&tags)
+        .max_length(7)
+        .vim_mode(true)
         .interact()?;
 
     let mut assets: Vec<Asset> = vec![];
@@ -60,6 +62,8 @@ pub async fn get_github_release_url(appimage: &AppImage) -> Result<String> {
                     .map(|x| x.name.to_string())
                     .collect::<Vec<_>>(),
             )
+            .max_length(7)
+            .vim_mode(true)
             .interact()?;
     }
 
