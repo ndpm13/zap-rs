@@ -14,6 +14,9 @@ cargo install --git https://github.com/ndpm13/zap-rs
 # Install from URL
 zap-rs install --from https://f.sed.lol/wow.AppImage wow
 
+# Install from GitHub releases
+zap-rs install --github --from vscodium/vscodium
+
 # Remove
 zap-rs rm neovim
 ```
@@ -27,7 +30,7 @@ This is me figuring out Rust and messing around with async stuff. Code changes a
 ## Acknowledgments
 
 - [zap](https://github.com/srevinsaju/zap) - The original AppImage package manager that inspired this project
-- The Rust community for excellent crates like `clap`, `tokio`, and `indicatif`
+- The Rust community for excellent crates like `clap`, `tokio`, `octocrab`, and `dialoguer`
 
 ## License
 

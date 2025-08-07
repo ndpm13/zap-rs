@@ -1,6 +1,8 @@
 use tokio::fs;
 
-use crate::{AppImage, Downloader, Index, Result, SymlinkManager, index_dir};
+use crate::{
+    AppImage, Downloader, Index, Result, SymlinkManager, get_github_release_url, index_dir,
+};
 
 #[derive(Debug, Default)]
 pub struct PackageManager {
@@ -26,9 +28,19 @@ impl PackageManager {
         appimage.file_path = self
             .downloader
             .prepare_path(&appimage.source.meta.url, &appimage.executable)?;
-        self.downloader
-            .download_with_progress(&appimage.source.meta.url, &appimage.file_path)
-            .await?;
+
+        if appimage.source.identifier != "git.github" {
+            self.downloader
+                .download_with_progress(&appimage.source.meta.url, &appimage.file_path)
+                .await?;
+        } else {
+            self.downloader
+                .download_with_progress(
+                    &get_github_release_url(appimage).await?,
+                    &appimage.file_path,
+                )
+                .await?;
+        }
 
         self.index.add(appimage, appname).await?;
         self.symlink_manager.create(appimage).await?;

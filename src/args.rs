@@ -34,6 +34,10 @@ pub struct InstallArgs {
     /// Name of the executable
     #[arg(long)]
     pub executable: Option<String>,
+
+    /// Use --from as repository slug to fetch from GitHub
+    #[arg(long, default_value_t = false)]
+    pub github: bool,
 }
 
 #[derive(Debug, Args)]

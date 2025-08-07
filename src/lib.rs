@@ -7,6 +7,7 @@ mod paths;
 mod symlink;
 mod tui;
 mod error;
+mod github;
 
 pub use crate::appimage::*;
 pub use crate::args::*;
@@ -17,3 +18,4 @@ pub use crate::paths::*;
 pub use crate::symlink::*;
 pub use crate::tui::*;
 pub use crate::error::*;
+pub use crate::github::*;
