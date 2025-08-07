@@ -11,6 +11,7 @@ pub enum Error {
         source: reqwest::Error,
     },
     InvalidAppImage,
+    InvalidSlug(String),
 
     #[from]
     Io(std::io::Error),
@@ -26,6 +27,12 @@ pub enum Error {
 
     #[from]
     IndicatifTemplate(indicatif::style::TemplateError),
+
+    #[from]
+    Octocrab(octocrab::Error),
+
+    #[from]
+    Dialoguer(dialoguer::Error),
 }
 
 impl core::fmt::Display for Error {
@@ -57,6 +64,9 @@ impl core::fmt::Display for Error {
             Error::InvalidAppImage => {
                 write!(fmt, "Invalid AppImage")
             }
+            Error::InvalidSlug(slug) => write!(fmt, "Invalid repository slug {slug}"),
+            Error::Octocrab(e) => write!(fmt, "Octocrab error: {e}"),
+            Error::Dialoguer(e) => write!(fmt, "Dialoguer error: {e}"),
         }
     }
 }
