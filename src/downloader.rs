@@ -34,10 +34,10 @@ impl Downloader {
             });
         }
 
-        if let Some(len) = resp.content_length() {
-            if len < 1024 {
-                return Err(Error::InvalidAppImage);
-            }
+        if let Some(len) = resp.content_length()
+            && len < 1024
+        {
+            return Err(Error::InvalidAppImage);
         }
 
         let content_type = resp
