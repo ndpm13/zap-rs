@@ -2,6 +2,11 @@
 name = "zap-rs"
 version = "0.1.0"
 edition = "2024"
+authors = ["Naz <ndpm13@ch-naseem.com>"]
+description = "Rust-based AppImage package manager inspired by Zap"
+repository = "https://git.ch-naseem.com/ndpm13/zap-rs"
+homepage = "https://git.ch-naseem.com/ndpm13/zap-rs"
+license = "MIT"
 
 [dependencies]
 clap = { version = "4.5.41", features = ["derive"] }
