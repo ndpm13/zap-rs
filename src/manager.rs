@@ -26,9 +26,14 @@ impl PackageManager {
         appimage.file_path = self
             .downloader
             .prepare_path(&appimage.source.meta.url, &appimage.executable)?;
-        self.downloader
-            .download_with_progress(&appimage.source.meta.url, &appimage.file_path)
-            .await?;
+
+        if appimage.source.identifier != "git.github" {
+            self.downloader
+                .download_with_progress(&appimage.source.meta.url, &appimage.file_path)
+                .await?;
+        } else {
+            todo!()
+        }
 
         self.index.add(appimage, appname).await?;
         self.symlink_manager.create(appimage).await?;

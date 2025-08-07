@@ -14,7 +14,11 @@ async fn run() -> Result<()> {
                 file_path: PathBuf::new(),
                 executable: args.executable.unwrap_or(args.appname.clone()),
                 source: Source {
-                    identifier: "raw_url".to_string(),
+                    identifier: if args.github {
+                        "git.github".to_string()
+                    } else {
+                        "raw_url".to_string()
+                    },
                     meta: SourceMetadata { url: args.from },
                 },
             };
