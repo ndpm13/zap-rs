@@ -1,7 +1,12 @@
+use std::{
+    io::{self, Write},
+    path::PathBuf,
+};
 use tokio::fs;
 
 use crate::{
-    AppImage, Downloader, Index, Result, SymlinkManager, get_github_release_url, index_dir,
+    AppImage, Downloader, Index, Result, SymlinkManager, desktops_dir, get_github_release_url,
+    icons_dir, index_dir,
 };
 
 #[derive(Debug, Default)]
@@ -44,6 +49,17 @@ impl PackageManager {
 
         self.index.add(appimage, appname).await?;
         self.symlink_manager.create(appimage).await?;
+
+        print!("Do you want to integrate this appimage? (y/N) ");
+        io::stdout().flush()?;
+
+        let mut input = String::new();
+        io::stdin().read_line(&mut input)?;
+
+        if input.to_lowercase().trim() == "y" || input.to_lowercase().trim() == "yes" {
+            appimage.integrate_desktop().await?;
+        }
+
         Ok(())
     }
     pub async fn remove(&self, appname: &str) -> Result<()> {
@@ -52,6 +68,26 @@ impl PackageManager {
         fs::remove_file(&appimage.file_path).await?;
         self.symlink_manager.remove(&appimage.executable).await?;
         self.index.remove(appname).await?;
+
+        if fs::try_exists(desktops_dir()?.join(format!("{}.desktop", appimage.executable))).await? {
+            fs::remove_file(desktops_dir()?.join(format!("{}.desktop", appimage.executable)))
+                .await?;
+        }
+        if fs::try_exists(PathBuf::from(std::env::var("HOME")?).join(format!(
+            ".local/share/applications/{}.desktop",
+            appimage.executable
+        )))
+        .await?
+        {
+            fs::remove_file(PathBuf::from(std::env::var("HOME")?).join(format!(
+                ".local/share/applications/{}.desktop",
+                appimage.executable
+            )))
+            .await?;
+        }
+        if fs::try_exists(icons_dir()?.join(format!("{}.png", appimage.executable))).await? {
+            fs::remove_file(icons_dir()?.join(format!("{}.png", appimage.executable))).await?;
+        }
 
         Ok(())
     }
