@@ -5,7 +5,7 @@ AppImage package manager inspired by [zap](https://github.com/srevinsaju/zap), b
 ## Install
 
 ```bash
-cargo install --git https://github.com/ndpm13/zap-rs
+cargo install zap-rs
 ```
 
 ## Usage
