@@ -14,3 +14,11 @@ pub fn index_dir() -> Result<PathBuf> {
 pub fn appimages_dir() -> Result<PathBuf> {
     Ok(zap_rs_home()?.join("appimages"))
 }
+
+pub fn desktops_dir() -> Result<PathBuf> {
+    Ok(zap_rs_home()?.join("desktops"))
+}
+
+pub fn icons_dir() -> Result<PathBuf> {
+    Ok(zap_rs_home()?.join("icons"))
+}
