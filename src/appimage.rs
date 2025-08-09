@@ -63,10 +63,16 @@ impl AppImage {
             .current_dir(&temp_dir)
             .spawn()?
             .wait()?;
+        Command::new(&self.file_path)
+            .arg("--appimage-extract")
+            .arg("usr/share/icons/hicolor/256x256/apps/*.png")
+            .current_dir(&temp_dir)
+            .spawn()?
+            .wait()?;
 
         Ok(temp_dir)
     }
-    async fn fix_desktop(&self, desktop_file_path: &PathBuf) -> Result<()> {
+    async fn fix_desktop(&self, desktop_file_path: &PathBuf, icon_found: bool) -> Result<()> {
         let file_content = fs::read_to_string(&desktop_file_path).await?;
 
         let appimage_path = self.file_path.to_str().ok_or(Error::InvalidPath)?;
@@ -92,7 +98,7 @@ impl AppImage {
                     } else {
                         line.to_string()
                     }
-                } else if line.contains("Icon=") {
+                } else if line.contains("Icon=") && icon_found {
                     if let Some(exec_arg) = line.split_once("=") {
                         format!("{}={}", exec_arg.0, icon_path)
                     } else {
@@ -124,22 +130,36 @@ impl AppImage {
             )),
         );
 
+        let mut icon_found = false;
+
+        if fs::try_exists(&squashfs.join("usr/share/icons/hicolor/512x512/apps")).await? {
+            let mut squashfs_icon_entries =
+                fs::read_dir(&squashfs.join("usr/share/icons/hicolor/512x512/apps")).await?;
+            while let Some(entry) = squashfs_icon_entries.next_entry().await? {
+                if entry.path().extension() == Some("png".as_ref()) {
+                    fs::copy(entry.path(), &icon_path).await?;
+                    icon_found = true;
+                }
+            }
+        } else if fs::try_exists(&squashfs.join("usr/share/icons/hicolor/256x256/apps")).await? {
+            let mut squashfs_icon_entries =
+                fs::read_dir(&squashfs.join("usr/share/icons/hicolor/256x256/apps")).await?;
+            while let Some(entry) = squashfs_icon_entries.next_entry().await? {
+                if entry.path().extension() == Some("png".as_ref()) {
+                    fs::copy(entry.path(), &icon_path).await?;
+                    icon_found = true;
+                }
+            }
+        }
+
         let mut squashfs_entries = fs::read_dir(&squashfs).await?;
         while let Some(entry) = squashfs_entries.next_entry().await? {
             if entry.path().extension() == Some("desktop".as_ref()) {
                 fs::copy(entry.path(), &desktop_file_paths.0).await?;
 
-                self.fix_desktop(&desktop_file_paths.0).await?;
+                self.fix_desktop(&desktop_file_paths.0, icon_found).await?;
 
                 fs::copy(&desktop_file_paths.0, &desktop_file_paths.1).await?;
-            }
-        }
-
-        let mut squashfs_icon_entries =
-            fs::read_dir(&squashfs.join("usr/share/icons/hicolor/512x512/apps")).await?;
-        while let Some(entry) = squashfs_icon_entries.next_entry().await? {
-            if entry.path().extension() == Some("png".as_ref()) {
-                fs::copy(entry.path(), &icon_path).await?;
             }
         }
 
