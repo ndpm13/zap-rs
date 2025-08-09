@@ -1,6 +1,6 @@
 [package]
 name = "zap-rs"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 authors = ["Naz <ndpm13@ch-naseem.com>"]
 description = "Rust-based AppImage package manager inspired by Zap"
