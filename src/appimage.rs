@@ -1,5 +1,8 @@
 use serde::{Deserialize, Serialize};
-use std::{path::PathBuf, process::Command};
+use std::{
+    path::PathBuf,
+    process::{Command, Stdio},
+};
 use tokio::fs;
 
 use crate::{Error, InstallArgs, Result, desktops_dir, icons_dir};
@@ -53,6 +56,7 @@ impl AppImage {
             .arg("--appimage-extract")
             .arg("*.desktop")
             .current_dir(&temp_dir)
+            .stdout(Stdio::null())
             .spawn()?
             .wait()?;
 
@@ -61,12 +65,14 @@ impl AppImage {
             .arg("--appimage-extract")
             .arg("usr/share/icons/hicolor/512x512/apps/*.png")
             .current_dir(&temp_dir)
+            .stdout(Stdio::null())
             .spawn()?
             .wait()?;
         Command::new(&self.file_path)
             .arg("--appimage-extract")
             .arg("usr/share/icons/hicolor/256x256/apps/*.png")
             .current_dir(&temp_dir)
+            .stdout(Stdio::null())
             .spawn()?
             .wait()?;
 
