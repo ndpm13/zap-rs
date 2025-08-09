@@ -63,14 +63,7 @@ impl AppImage {
         // Extract icon
         Command::new(&self.file_path)
             .arg("--appimage-extract")
-            .arg("usr/share/icons/hicolor/512x512/apps/*.png")
-            .current_dir(&temp_dir)
-            .stdout(Stdio::null())
-            .spawn()?
-            .wait()?;
-        Command::new(&self.file_path)
-            .arg("--appimage-extract")
-            .arg("usr/share/icons/hicolor/256x256/apps/*.png")
+            .arg("usr/share/icons/hicolor/*/apps/*.png")
             .current_dir(&temp_dir)
             .stdout(Stdio::null())
             .spawn()?
@@ -136,24 +129,27 @@ impl AppImage {
             )),
         );
 
+        let icon_resolutions = [
+            "1024", "720", "512", "256", "192", "128", "96", "72", "64", "48", "36", "32", "24",
+            "22", "16",
+        ];
+
         let mut icon_found = false;
 
-        if fs::try_exists(&squashfs.join("usr/share/icons/hicolor/512x512/apps")).await? {
-            let mut squashfs_icon_entries =
-                fs::read_dir(&squashfs.join("usr/share/icons/hicolor/512x512/apps")).await?;
-            while let Some(entry) = squashfs_icon_entries.next_entry().await? {
-                if entry.path().extension() == Some("png".as_ref()) {
-                    fs::copy(entry.path(), &icon_path).await?;
-                    icon_found = true;
+        for res in icon_resolutions {
+            let icon_dir = squashfs.join(format!("usr/share/icons/hicolor/{}x{}/apps", res, res));
+
+            if fs::try_exists(&icon_dir).await? {
+                let mut squashfs_icon_entries = fs::read_dir(&icon_dir).await?;
+                while let Some(entry) = squashfs_icon_entries.next_entry().await? {
+                    if entry.path().extension() == Some("png".as_ref()) {
+                        fs::copy(entry.path(), &icon_path).await?;
+                        icon_found = true;
+                        break;
+                    }
                 }
-            }
-        } else if fs::try_exists(&squashfs.join("usr/share/icons/hicolor/256x256/apps")).await? {
-            let mut squashfs_icon_entries =
-                fs::read_dir(&squashfs.join("usr/share/icons/hicolor/256x256/apps")).await?;
-            while let Some(entry) = squashfs_icon_entries.next_entry().await? {
-                if entry.path().extension() == Some("png".as_ref()) {
-                    fs::copy(entry.path(), &icon_path).await?;
-                    icon_found = true;
+                if icon_found {
+                    break;
                 }
             }
         }
