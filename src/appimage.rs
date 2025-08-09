@@ -1,5 +1,8 @@
 use serde::{Deserialize, Serialize};
-use std::{path::PathBuf, process::Command};
+use std::{
+    path::PathBuf,
+    process::{Command, Stdio},
+};
 use tokio::fs;
 
 use crate::{Error, InstallArgs, Result, desktops_dir, icons_dir};
@@ -53,20 +56,22 @@ impl AppImage {
             .arg("--appimage-extract")
             .arg("*.desktop")
             .current_dir(&temp_dir)
+            .stdout(Stdio::null())
             .spawn()?
             .wait()?;
 
         // Extract icon
         Command::new(&self.file_path)
             .arg("--appimage-extract")
-            .arg("usr/share/icons/hicolor/512x512/apps/*.png")
+            .arg("usr/share/icons/hicolor/*/apps/*.png")
             .current_dir(&temp_dir)
+            .stdout(Stdio::null())
             .spawn()?
             .wait()?;
 
         Ok(temp_dir)
     }
-    async fn fix_desktop(&self, desktop_file_path: &PathBuf) -> Result<()> {
+    async fn fix_desktop(&self, desktop_file_path: &PathBuf, icon_found: bool) -> Result<()> {
         let file_content = fs::read_to_string(&desktop_file_path).await?;
 
         let appimage_path = self.file_path.to_str().ok_or(Error::InvalidPath)?;
@@ -92,7 +97,7 @@ impl AppImage {
                     } else {
                         line.to_string()
                     }
-                } else if line.contains("Icon=") {
+                } else if line.contains("Icon=") && icon_found {
                     if let Some(exec_arg) = line.split_once("=") {
                         format!("{}={}", exec_arg.0, icon_path)
                     } else {
@@ -124,22 +129,39 @@ impl AppImage {
             )),
         );
 
+        let icon_resolutions = [
+            "1024", "720", "512", "256", "192", "128", "96", "72", "64", "48", "36", "32", "24",
+            "22", "16",
+        ];
+
+        let mut icon_found = false;
+
+        for res in icon_resolutions {
+            let icon_dir = squashfs.join(format!("usr/share/icons/hicolor/{}x{}/apps", res, res));
+
+            if fs::try_exists(&icon_dir).await? {
+                let mut squashfs_icon_entries = fs::read_dir(&icon_dir).await?;
+                while let Some(entry) = squashfs_icon_entries.next_entry().await? {
+                    if entry.path().extension() == Some("png".as_ref()) {
+                        fs::copy(entry.path(), &icon_path).await?;
+                        icon_found = true;
+                        break;
+                    }
+                }
+                if icon_found {
+                    break;
+                }
+            }
+        }
+
         let mut squashfs_entries = fs::read_dir(&squashfs).await?;
         while let Some(entry) = squashfs_entries.next_entry().await? {
             if entry.path().extension() == Some("desktop".as_ref()) {
                 fs::copy(entry.path(), &desktop_file_paths.0).await?;
 
-                self.fix_desktop(&desktop_file_paths.0).await?;
+                self.fix_desktop(&desktop_file_paths.0, icon_found).await?;
 
                 fs::copy(&desktop_file_paths.0, &desktop_file_paths.1).await?;
-            }
-        }
-
-        let mut squashfs_icon_entries =
-            fs::read_dir(&squashfs.join("usr/share/icons/hicolor/512x512/apps")).await?;
-        while let Some(entry) = squashfs_icon_entries.next_entry().await? {
-            if entry.path().extension() == Some("png".as_ref()) {
-                fs::copy(entry.path(), &icon_path).await?;
             }
         }
 
