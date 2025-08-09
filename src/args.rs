@@ -10,15 +10,15 @@ pub struct Cli {
 
 #[derive(Debug, Subcommand)]
 pub enum Command {
-    /// Installs an AppImage
+    /// Installs an AppImage (alias: i)
     #[command(name = "install", alias = "i")]
     Install(InstallArgs),
 
-    /// Removes an AppImage
+    /// Removes an AppImage (alias: rm)
     #[command(name = "remove", alias = "rm")]
     Remove(RemoveArgs),
 
-    /// List the installed AppImages
+    /// List the installed AppImages (alias: ls)
     #[command(name = "list", alias = "ls")]
     List,
 }
