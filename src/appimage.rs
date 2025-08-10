@@ -119,6 +119,10 @@ impl AppImage {
 
         fs::create_dir_all(desktops_dir()?).await?;
         fs::create_dir_all(icons_dir()?).await?;
+        fs::create_dir_all(
+            PathBuf::from(std::env::var("HOME")?).join(".local/share/applications/"),
+        )
+        .await?;
 
         let icon_path = icons_dir()?.join(format!("{}.png", self.executable));
         let desktop_file_paths = (
