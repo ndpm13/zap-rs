@@ -1,5 +1,7 @@
 # Zap-rs
 
+![Crates.io Version](https://img.shields.io/crates/v/zap-rs) ![Crates.io Total Downloads](https://img.shields.io/crates/d/zap-rs)
+
 AppImage package manager inspired by [zap](https://github.com/srevinsaju/zap), but in Rust.
 
 ## Install
