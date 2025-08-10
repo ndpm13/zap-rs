@@ -59,6 +59,13 @@ impl AppImage {
             .stdout(Stdio::null())
             .spawn()?
             .wait()?;
+        Command::new(&self.file_path)
+            .arg("--appimage-extract")
+            .arg("usr/share/applications/*.desktop")
+            .current_dir(&temp_dir)
+            .stdout(Stdio::null())
+            .spawn()?
+            .wait()?;
 
         // Extract icon
         Command::new(&self.file_path)
@@ -161,7 +168,7 @@ impl AppImage {
         let mut squashfs_entries = fs::read_dir(&squashfs).await?;
         while let Some(entry) = squashfs_entries.next_entry().await? {
             if entry.path().extension() == Some("desktop".as_ref()) {
-                fs::copy(entry.path(), &desktop_file_paths.0).await?;
+                fs::copy(fs::canonicalize(entry.path()).await?, &desktop_file_paths.0).await?;
 
                 self.fix_desktop(&desktop_file_paths.0, icon_found).await?;
 
