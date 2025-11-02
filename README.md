@@ -21,6 +21,9 @@ zap-rs install --github --from vscodium/vscodium codium
 
 # Remove
 zap-rs rm neovim
+
+# Update (only works with AppImages installed from GitHub)
+zap-rs update codium
 ```
 
 Creates symlinks in `~/.local/bin` so you can just run the apps directly. Be sure to have it included in your `$PATH` env var.

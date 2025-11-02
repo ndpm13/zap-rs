@@ -13,6 +13,11 @@ async fn run() -> Result<()> {
 
             pm.install(&mut appimage, &args.appname).await?;
         }
+        Command::Update(args) => {
+            let mut appimage = pm.index.get(&args.appname).await?;
+
+            pm.update(&mut appimage).await?;
+        }
         Command::Remove(args) => {
             pm.remove(&args.appname).await?;
         }

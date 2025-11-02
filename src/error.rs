@@ -12,6 +12,7 @@ pub enum Error {
     },
     InvalidAppImage,
     InvalidSlug(String),
+    CantUpdatePkg,
 
     #[from]
     Io(std::io::Error),
@@ -44,6 +45,7 @@ impl core::fmt::Display for Error {
             Error::Http(e) => write!(fmt, "HTTP error: {e}"),
             Error::EnvVar(e) => write!(fmt, "Environment variable error: {e}"),
             Error::InvalidPath => write!(fmt, "Invalid path provided"),
+            Error::CantUpdatePkg => write!(fmt, "Can't update package"),
             Error::IndicatifTemplate(e) => write!(fmt, "Progress bar template error: {e}"),
             Error::Download { url, source } => {
                 if source.is_timeout() {
