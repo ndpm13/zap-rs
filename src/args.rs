@@ -14,6 +14,10 @@ pub enum Command {
     #[command(name = "install", alias = "i")]
     Install(InstallArgs),
 
+    /// Updates an AppImage (alias: u)
+    #[command(name = "update", alias = "u")]
+    Update(UpdateArgs),
+
     /// Removes an AppImage (alias: rm)
     #[command(name = "remove", alias = "rm")]
     Remove(RemoveArgs),
@@ -38,6 +42,11 @@ pub struct InstallArgs {
     /// Use --from as repository slug to fetch from GitHub
     #[arg(long, default_value_t = false)]
     pub github: bool,
+}
+
+#[derive(Debug, Args)]
+pub struct UpdateArgs {
+    pub appname: String,
 }
 
 #[derive(Debug, Args)]

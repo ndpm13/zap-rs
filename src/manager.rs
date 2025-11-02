@@ -5,8 +5,8 @@ use std::{
 use tokio::fs;
 
 use crate::{
-    AppImage, Downloader, Index, Result, SymlinkManager, desktops_dir, get_github_release_url,
-    icons_dir, index_dir,
+    AppImage, Downloader, Error, Index, Result, SymlinkManager, desktops_dir,
+    get_github_release_url, icons_dir, index_dir,
 };
 
 #[derive(Debug, Default)]
@@ -99,6 +99,20 @@ impl PackageManager {
                 println!("- {stem}");
             }
         }
+
+        Ok(())
+    }
+    pub async fn update(&self, appimage: &mut AppImage) -> Result<()> {
+        if appimage.source.identifier != "git.github".to_string() {
+            return Err(Error::CantUpdatePkg);
+        }
+
+        self.downloader
+            .download_with_progress(
+                &get_github_release_url(appimage).await?,
+                &appimage.file_path,
+            )
+            .await?;
 
         Ok(())
     }
